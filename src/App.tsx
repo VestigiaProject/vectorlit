@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Header } from './components/Header';
 import { Scene } from './components/Scene';
 import { Sidebar } from './components/Sidebar';
-import { fetchVectors } from './services/pinecone';
+import { fetchVectors } from './services/vectorService';
 import { useVectorStore } from './store/vectorStore';
 
 export function App() {
@@ -18,11 +18,15 @@ export function App() {
       try {
         const indexName = import.meta.env.VITE_PINECONE_INDEX_NAME;
         if (!indexName) {
-          throw new Error('Pinecone index name is not configured');
+          throw new Error('Pinecone index name is not configured in environment variables');
         }
 
         const vectors = await fetchVectors(indexName);
-        setVectors(vectors);
+        if (vectors.length === 0) {
+          setError('No vectors found in the index. Please ensure your index contains vector data.');
+        } else {
+          setVectors(vectors);
+        }
       } catch (error) {
         console.error('Failed to fetch vectors:', error);
         setError(error instanceof Error ? error.message : 'Failed to fetch vectors');

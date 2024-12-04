@@ -1,20 +1,14 @@
 import { Pinecone } from '@pinecone-database/pinecone';
 
-// Initialize Pinecone client only when API key is available
 const getPineconeClient = () => {
   const apiKey = import.meta.env.VITE_PINECONE_API_KEY;
-  const environment = import.meta.env.VITE_PINECONE_ENVIRONMENT;
-
+  
   if (!apiKey) {
     throw new Error('Pinecone API key is not configured');
-  }
-  if (!environment) {
-    throw new Error('Pinecone environment is not configured');
   }
 
   return new Pinecone({
     apiKey,
-    environment,
   });
 };
 
@@ -27,12 +21,12 @@ export const fetchVectors = async (indexName: string, limit = 100) => {
     const pinecone = getPineconeClient();
     const index = pinecone.index(indexName);
     
-    // First, let's check if we can describe the index
-    const description = await index.describeIndex();
-    console.log('Index description:', description);
+    // First, let's check if we can describe the index stats
+    const stats = await index.describeStatistics();
+    console.log('Index stats:', stats);
 
     // Generate a random normalized vector for querying
-    const dimension = description.dimension;
+    const dimension = 1536; // Standard dimension for many embedding models
     const randomVector = Array.from({ length: dimension }, () => Math.random() * 2 - 1);
     const magnitude = Math.sqrt(randomVector.reduce((sum, val) => sum + val * val, 0));
     const normalizedVector = randomVector.map(val => val / magnitude);
@@ -57,6 +51,6 @@ export const fetchVectors = async (indexName: string, limit = 100) => {
     }));
   } catch (error) {
     console.error('Pinecone error:', error);
-    throw error;
+    throw new Error(error instanceof Error ? error.message : 'Failed to fetch vectors from Pinecone');
   }
 };
