@@ -5,7 +5,7 @@ import { Sidebar } from './components/Sidebar';
 import { fetchVectors } from './services/pinecone';
 import { useVectorStore } from './store/vectorStore';
 
-function App() {
+export function App() {
   const setVectors = useVectorStore((state) => state.setVectors);
   const setLoading = useVectorStore((state) => state.setLoading);
   const setError = useVectorStore((state) => state.setError);
@@ -16,17 +16,12 @@ function App() {
       setError(null);
       
       try {
-        if (!import.meta.env.VITE_PINECONE_API_KEY) {
-          throw new Error('Pinecone API key is not configured');
-        }
-        if (!import.meta.env.VITE_PINECONE_ENVIRONMENT) {
-          throw new Error('Pinecone environment is not configured');
-        }
-        if (!import.meta.env.VITE_PINECONE_INDEX_NAME) {
+        const indexName = import.meta.env.VITE_PINECONE_INDEX_NAME;
+        if (!indexName) {
           throw new Error('Pinecone index name is not configured');
         }
 
-        const vectors = await fetchVectors(import.meta.env.VITE_PINECONE_INDEX_NAME);
+        const vectors = await fetchVectors(indexName);
         setVectors(vectors);
       } catch (error) {
         console.error('Failed to fetch vectors:', error);

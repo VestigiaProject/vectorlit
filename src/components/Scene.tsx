@@ -1,7 +1,8 @@
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Text } from '@react-three/drei';
+import { OrbitControls, Text, Stats } from '@react-three/drei';
 import { VectorPoints } from './VectorPoints';
 import { useVectorStore } from '../store/vectorStore';
+import { Suspense } from 'react';
 
 export function Scene() {
   const selectedVector = useVectorStore((state) => state.selectedVector);
@@ -37,22 +38,34 @@ export function Scene() {
   }
 
   return (
-    <Canvas camera={{ position: [0, 0, 50] }}>
-      <ambientLight intensity={0.5} />
-      <pointLight position={[10, 10, 10]} />
-      <VectorPoints />
-      <OrbitControls />
-      {selectedVector && (
-        <Text
-          position={[0, -20, 0]}
-          fontSize={1.5}
-          color="#4a5568"
-          anchorX="center"
-          anchorY="middle"
-        >
-          {selectedVector.id}
-        </Text>
-      )}
+    <Canvas
+      camera={{ position: [0, 0, 50], fov: 50 }}
+      style={{ background: 'rgb(254 243 199)' }}
+    >
+      <Suspense fallback={null}>
+        <ambientLight intensity={0.5} />
+        <pointLight position={[10, 10, 10]} intensity={1} />
+        <VectorPoints />
+        <OrbitControls 
+          enableDamping
+          dampingFactor={0.05}
+          rotateSpeed={0.5}
+          zoomSpeed={0.5}
+        />
+        {selectedVector && (
+          <Text
+            position={[0, -20, 0]}
+            fontSize={1.5}
+            color="#78350F"
+            anchorX="center"
+            anchorY="middle"
+            font="/fonts/Crimson_Text/CrimsonText-Regular.ttf"
+          >
+            {selectedVector.id}
+          </Text>
+        )}
+        <Stats />
+      </Suspense>
     </Canvas>
   );
 }
