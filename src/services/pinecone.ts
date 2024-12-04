@@ -6,16 +6,37 @@ const pinecone = new Pinecone({
 });
 
 export const fetchVectors = async (indexName: string, limit = 100) => {
-  const index = pinecone.index(indexName);
-  const queryResponse = await index.query({
-    vector: Array(1536).fill(0),
-    topK: limit,
-    includeMetadata: true,
-  });
+  if (!indexName) {
+    throw new Error('Index name is required');
+  }
 
-  return queryResponse.matches.map((match) => ({
-    id: match.id,
-    values: match.values || [],
-    metadata: match.metadata,
-  }));
+  try {
+    const index = pinecone.index(indexName);
+    
+    // First, let's check if we can describe the index
+    const description = await index.describeIndex();
+    console.log('Index description:', description);
+
+    const queryResponse = await index.query({
+      vector: Array(description.dimension).fill(0), // Use the correct dimension
+      topK: limit,
+      includeMetadata: true,
+      includeValues: true, // Explicitly request vector values
+    });
+
+    console.log('Query response:', queryResponse);
+
+    if (!queryResponse.matches.length) {
+      console.warn('No vectors found in the index');
+    }
+
+    return queryResponse.matches.map((match) => ({
+      id: match.id,
+      values: match.values || [],
+      metadata: match.metadata,
+    }));
+  } catch (error) {
+    console.error('Pinecone error:', error);
+    throw error;
+  }
 };
